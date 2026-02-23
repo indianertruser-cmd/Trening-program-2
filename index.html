@@ -1,1 +1,686 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  
+  <title>PCOS Plan</title>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="PCOS Plan">
+  <meta name="theme-color" content="#4f46e5"> 
+  <link rel="apple-touch-icon" href="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e6/Dumbbell_icon.svg/512px-Dumbbell_icon.svg.png">
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    .scrollbar-hide::-webkit-scrollbar { display: none; }
+    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+    body { 
+      -webkit-tap-highlight-color: transparent; 
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; 
+      padding-top: env(safe-area-inset-top);
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type="number"] { -moz-appearance: textfield; }
+
+    /* --- ANIMASJONER --- */
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-slide-down { animation: slideDown 0.3s ease-out forwards; transform-origin: top; }
+    
+    @keyframes popIn {
+      0% { transform: scale(0.95); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .animate-pop-in { animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+    
+    @keyframes slideUpFade {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-slide-up-fade { animation: slideUpFade 0.4s ease-out forwards; }
+    
+    @keyframes checkPop {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.15); }
+      100% { transform: scale(1); }
+    }
+    .animate-check-pop { animation: checkPop 0.3s ease-out; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 pb-24 min-h-screen">
+  
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useRef } = React;
+
+    // --- ANATOMI KOMPONENT ---
+    const AnatomyMap = ({ primary = [], secondary = [] }) => {
+      const getColor = (muscleId) => {
+        if (primary.includes(muscleId)) return '#4f46e5'; // Indigo-600 (Hoved)
+        if (secondary.includes(muscleId)) return '#0ea5e9'; // Sky-500 (Støtte)
+        return '#e2e8f0'; // Slate-200 (Inaktiv)
+      };
+
+      return (
+        <div className="flex justify-center gap-6 py-4">
+          <div className="relative">
+            <p className="text-[10px] font-bold text-slate-400 text-center mb-1 tracking-wider">FORAN</p>
+            <svg viewBox="0 0 100 200" className="w-24 h-48 drop-shadow-sm">
+              <rect x="40" y="5" width="20" height="25" rx="10" fill="#e2e8f0" />
+              <rect x="45" y="25" width="10" height="15" fill="#e2e8f0" />
+              <circle cx="28" cy="40" r="10" fill={getColor('shoulders')} />
+              <circle cx="72" cy="40" r="10" fill={getColor('shoulders')} />
+              <path d="M 32,35 Q 49,35 49,50 Q 49,55 35,50 Z" fill={getColor('chest')} />
+              <path d="M 68,35 Q 51,35 51,50 Q 51,55 65,50 Z" fill={getColor('chest')} />
+              <rect x="40" y="58" width="20" height="30" rx="4" fill={getColor('abs')} />
+              <ellipse cx="20" cy="62" rx="7" ry="14" fill={getColor('biceps')} />
+              <ellipse cx="80" cy="62" rx="7" ry="14" fill={getColor('biceps')} />
+              <ellipse cx="16" cy="90" rx="5" ry="12" fill={getColor('forearms')} />
+              <ellipse cx="84" cy="90" rx="5" ry="12" fill={getColor('forearms')} />
+              <rect x="34" y="95" width="15" height="45" rx="7" fill={getColor('quads')} />
+              <rect x="51" y="95" width="15" height="45" rx="7" fill={getColor('quads')} />
+              <rect x="36" y="145" width="11" height="35" rx="5" fill="#e2e8f0" />
+              <rect x="53" y="145" width="11" height="35" rx="5" fill="#e2e8f0" />
+              <rect x="37" y="180" width="10" height="10" rx="3" fill="#e2e8f0" />
+              <rect x="53" y="180" width="10" height="10" rx="3" fill="#e2e8f0" />
+            </svg>
+          </div>
+          <div className="relative">
+            <p className="text-[10px] font-bold text-slate-400 text-center mb-1 tracking-wider">BAK</p>
+            <svg viewBox="0 0 100 200" className="w-24 h-48 drop-shadow-sm">
+              <rect x="40" y="5" width="20" height="25" rx="10" fill="#e2e8f0" />
+              <polygon points="50,20 30,35 50,55 70,35" fill={getColor('traps')} />
+              <circle cx="28" cy="40" r="9" fill={getColor('rear_delts')} />
+              <circle cx="72" cy="40" r="9" fill={getColor('rear_delts')} />
+              <path d="M 33,45 L 25,65 L 45,75 L 50,55 Z" fill={getColor('lats')} />
+              <path d="M 67,45 L 75,65 L 55,75 L 50,55 Z" fill={getColor('lats')} />
+              <rect x="40" y="70" width="20" height="20" rx="4" fill={getColor('lowerback')} />
+              <ellipse cx="20" cy="62" rx="6" ry="14" fill={getColor('triceps')} />
+              <ellipse cx="80" cy="62" rx="6" ry="14" fill={getColor('triceps')} />
+              <ellipse cx="16" cy="90" rx="5" ry="12" fill={getColor('forearms')} />
+              <ellipse cx="84" cy="90" rx="5" ry="12" fill={getColor('forearms')} />
+              <rect x="33" y="93" width="16" height="22" rx="8" fill={getColor('glutes')} />
+              <rect x="51" y="93" width="16" height="22" rx="8" fill={getColor('glutes')} />
+              <rect x="35" y="115" width="13" height="35" rx="6" fill={getColor('hamstrings')} />
+              <rect x="52" y="115" width="13" height="35" rx="6" fill={getColor('hamstrings')} />
+              <ellipse cx="41" cy="160" rx="7" ry="15" fill={getColor('calves')} />
+              <ellipse cx="59" cy="160" rx="7" ry="15" fill={getColor('calves')} />
+              <rect x="37" y="180" width="10" height="10" rx="3" fill="#e2e8f0" />
+              <rect x="53" y="180" width="10" height="10" rx="3" fill="#e2e8f0" />
+            </svg>
+          </div>
+        </div>
+      );
+    };
+
+    // --- DATA MED DETALJERTE FORKLARINGER ---
+    const defaultWorkoutData = [
+      {
+        id: 'day1',
+        title: 'Økt 1: Underkropp A',
+        subtitle: 'Styrke & Posterior Chain',
+        exercises: [
+          {
+            id: 'dl_barbell', name: 'Markløft (Barbell)', sets: 4, reps: '5', restTime: 180, restLabel: '3-5 min',
+            target: { primary: ['glutes', 'hamstrings', 'lowerback'], secondary: ['quads', 'lats', 'traps', 'forearms'] },
+            muscles: 'Store setemuskel (Gluteus maximus), bakside lår (hamstrings), forside lår (quadriceps), korsrygg (erector spinae) og den brede ryggmuskelen (latissimus dorsi).',
+            why: 'Markløft rekrutterer en enorm mengde muskelmasse, noe som gir en kraftig metabolsk respons og stimulerer utskillelsen av veksthormoner naturlig. For kvinner med PCOS bidrar dette til forbedret kroppssammensetning og styrket skjelett, samt økt glukoseopptak (bedrer insulinresistens).',
+            position: 'Føttene i hoftebredde. Grip stangen utenfor leggene og trekk skuldrene ned og bak (scapular depresjon). Dette setter latsene under spenning for å stabilisere ryggraden. Kjernen strammes hardt.',
+            execution: { concentric: '1-2 sek: "Press gulvet bort" med hælene. Kraften initieres av quadriceps i første fase, før glutes og hamstrings tar over for å fullføre hofteekstensjonen på toppen.', eccentric: '3 sek: Skyv hoften bakover (hip hinge) og senk stangen tett inntil kroppen ned til gulvet med full kontroll.' }
+          },
+          {
+            id: 'legpress_high', name: 'Benpress (Høy fotstilling)', sets: 3, reps: '8', restTime: 120, restLabel: '2-3 min',
+            target: { primary: ['glutes', 'hamstrings'], secondary: [] },
+            muscles: 'Gluteus maximus (setet) og hamstrings (bakside lår).',
+            why: 'Benpress-maskinen er et eksepsjonelt verktøy for å drive muskulær utmattelse uten begrensningene som balanse og ryggstyrke legger på en knebøy. Dette skaper høyt metabolsk stress i underkroppen uten å overbelaste nervesystemet.',
+            position: 'Høy plassering: Ved å plassere føttene høyere på platen, økes vinkelen i hofteleddet (større hoftefleksjon) mens knevinkelen blir mindre ekstrem. Dette skifter belastningen mot sete og bakside lår.',
+            execution: { concentric: '1 sek: Skyv plattformen eksplosivt oppover ved å presse gjennom hælene. Ikke lås knærne helt ut på toppen.', eccentric: '3-4 sek: Senk vekten langsomt og kontrollert mot deg til knærne er i ca. 90 grader. Korsryggen skal ligge klistret til setet.' }
+          },
+          {
+            id: 'legcurl_lying', name: 'Liggende Leg Curl', sets: 3, reps: '10', restTime: 90, restLabel: '90 sek',
+            target: { primary: ['hamstrings'], secondary: ['calves'] },
+            muscles: 'Hamstrings (isolasjon).',
+            why: 'Isolasjonsøvelser er kritiske for å treffe muskler som fungerer som synergister i sammensatte øvelser, men som trenger direkte stimulering for optimal hypertrofi og vekst.',
+            position: 'Ligg flatt på magen. Puten skal hvile rett over hælene (på akillessenen). Biomekanisk tips: Trekk tærne mot skinnbenet (dorsifleksjon) for å rekruttere leggene som assistent for å løfte tyngre, eller hold dem avslappet for 100% isolasjon av bakside lår.',
+            execution: { concentric: '1-2 sek: Bøy knærne og trekk puten så langt opp mot setet som mulig. Klem muskelen hardt.', eccentric: '3 sek: Hold igjen vekten på vei tilbake. Stopp rett før bena er helt strake for å holde konstant mekanisk tensjon.' }
+          },
+          {
+            id: 'lunges_db', name: 'Manual Utfall', sets: 3, reps: '10 pr. ben', restTime: 120, restLabel: '2 min',
+            target: { primary: ['quads', 'glutes'], secondary: ['hamstrings', 'abs'] },
+            muscles: 'Quadriceps, gluteus, hamstrings og kjernemuskulatur.',
+            why: 'Ettbensøvelser (unilaterale) retter opp asymmetrier i styrke mellom høyre og venstre ben, samtidig som det krever enorm kjernestabilisering.',
+            position: 'Stå med føttene i hoftebredde med en manual i hver hånd. Hold brystet høyt, skuldrene tilbake og blikket rett frem for å holde brystkassen åpen.',
+            execution: { concentric: '1 sek: Skyv kraftig ifra med hælen på den fremre foten for å returnere til startposisjonen i én glidende bevegelse.', eccentric: '3 sek: Ta et kontrollert steg fremover. Senk hoften rett ned til det bakre kneet nesten berører gulvet.' }
+          },
+          {
+            id: 'calfraise_smith', name: 'Smith Maskin Legghev', sets: 4, reps: '12-15', restTime: 60, restLabel: '60 sek',
+            target: { primary: ['calves'], secondary: [] },
+            muscles: 'Gastrocnemius og soleus (leggmusklene).',
+            why: 'Bygger muskelvolum nederst i bena for en balansert fysikk. Utføres i Smith-maskin for å fjerne balansekravet, slik at man kan fokusere 100% på muskelkontraksjonen.',
+            position: 'Plasser en stepkasse under stangen. Stå med tåballene på kanten slik at hælene kan senkes fritt. Stangen hviler på øvre del av ryggen.',
+            execution: { concentric: '1 sek: Press deg eksplosivt opp på tå så høyt du klarer. Hold topposisjonen (peak contraction) i 1 helt sekund.', eccentric: '3 sek: Senk hælene sakte ned mot gulvet til du kjenner en dyp strekk på baksiden av leggene.' }
+          }
+        ]
+      },
+      {
+        id: 'day2',
+        title: 'Økt 2: Overkropp A',
+        subtitle: 'Generell Styrke & Press',
+        exercises: [
+          {
+            id: 'bench_barbell', name: 'Benkpress (Stang)', sets: 4, reps: '6', restTime: 180, restLabel: '3 min',
+            target: { primary: ['chest'], secondary: ['shoulders', 'triceps'] },
+            muscles: 'Brystmuskulaturen (pectoralis major), fremre del av skuldrene (anterior deltoid) og triceps.',
+            why: 'En overlegen øvelse for å bygge absolutt overkroppsstyrke. Økt styrke her oversettes til bedre ytelse i alle andre pressøvelser, noe som igjen øker total muskelmasse og glukoselagring for PCOS-håndtering.',
+            position: 'Ha "fem punkter" i kontakt: bakhodet, begge skulderbladene, setet og begge føttene. Scapular retraksjon (klem skulderbladene sammen) er helt avgjørende; det beskytter skuldrene og tillater tyngre løft.',
+            execution: { concentric: '1-2 sek: Press stangen kraftig opp og svakt bakover mot ansiktet til startposisjonen. Hold spennet i ryggen.', eccentric: '3 sek: Senk stangen i en lett kurve (J-bane) til nedre del av brystet, med albuene i ca. 45 grader fra kroppen.' }
+          },
+          {
+            id: 'pulldown_wide', name: 'Nedtrekk (Bredt grep)', sets: 4, reps: '8', restTime: 120, restLabel: '2 min',
+            target: { primary: ['lats'], secondary: ['biceps', 'rear_delts', 'traps'] },
+            muscles: 'Latissimus dorsi (den brede ryggmuskelen), biceps og rhomboideus.',
+            why: 'Den viktigste øvelsen for ryggbredde. For kvinner med PCOS bidrar sterke og brede lats til å skape en "V-taper", som estetisk sett gir en illusjon av en smalere midje.',
+            position: 'Sitt med knærne godt festet. Ta et pronert (overhånds) grep noe bredere enn skulderbredde. Len torsoen ca. 10–30 grader bakover for å bringe latsenes fibre i linje med trekkraften.',
+            execution: { concentric: '1-2 sek: Initier bevegelsen ved å trekke skulderbladene ned, og dra deretter stangen ned til øvre del av brystet. Tenk at albuene skal ned i "baklommene".', eccentric: '3 sek: Før stangen kontrollert tilbake og la latsene strekkes fullstendig ut på toppen.' }
+          },
+          {
+            id: 'shoulderpress_smith', name: 'Smith Skulderpress', sets: 3, reps: '10', restTime: 120, restLabel: '2 min',
+            target: { primary: ['shoulders'], secondary: ['triceps', 'upper_chest'] },
+            muscles: 'Fremre og midtre skuldermuskel (anterior og lateral deltoid) og triceps.',
+            why: 'Å bruke Smith-maskinen fjerner kravet til stabilisering, noe som gjør det trygt å trene skuldrene svært nær muskulær svikt (hypertrofi-fokus) uten risiko for å miste balansen med tunge vekter.',
+            position: 'Sett en benk til ca. 75-85 graders vinkel. Sitt med et stolt bryst, press korsryggen mot benken og hold et pronert grep litt bredere enn skuldrene.',
+            execution: { concentric: '1-2 sek: Press stangen kraftig oppover til armene nesten er strake. Ikke bruk ryggen for å jukse opp vekten.', eccentric: '3 sek: Senk stangen kontrollert ned til haken/øvre del av brystet. Albuene skal peke lett fremover.' }
+          },
+          {
+            id: 'cableflies_mid', name: 'Cable Flies (Midtre)', sets: 3, reps: '12', restTime: 60, restLabel: '60 sek',
+            target: { primary: ['chest'], secondary: ['shoulders'] },
+            muscles: 'Bryst (Pectoralis major).',
+            why: 'I motsetning til manualer hvor tyngdekraften gjør belastningen ujevn, gir kabelmaskinen konstant spenning gjennom hele bevegelsesbanen. Ypperlig for å skape metabolsk stress etter tunge pressøvelser.',
+            position: 'Sett trinsene i skulderhøyde. Stå midt i maskinen, ta ett skritt frem i splitt-stilling for balanse. Brystet opp, skuldrene tilbake, med en liten knekk i albuene.',
+            execution: { concentric: '2 sek: Klem håndtakene sammen foran brystet som om du gir et stort tre en klem. Kryst brystmusklene i 1 sekund på toppen.', eccentric: '3 sek: Åpne armene rolig og kontrollert til du kjenner en dyp strekk.' }
+          },
+          {
+            id: 'plank', name: 'Planke', sets: 3, reps: '45-60 sek', restTime: 60, restLabel: '60 sek',
+            target: { primary: ['abs'], secondary: ['shoulders', 'lowerback'] },
+            muscles: 'Dyp kjernemuskulatur (transversus abdominis og rectus abdominis).',
+            why: 'Sterk kjerne er essensielt for å beskytte ryggraden i tunge løft som markløft og knebøy. Bedrer holdning og reduserer risiko for ryggsmerter.',
+            position: 'Støtt deg på underarmene og tærne. Albuene rett under skuldrene. Kjernen skal være stram, setet svakt tiltet innunder deg (posterior bekkentilt).',
+            execution: { concentric: 'Fokuser intenst på å trekke navlen opp mot ryggraden og stram setemuskulaturen. Pust rolig ned i magen.', eccentric: 'Pass på at korsryggen ikke henger ned (svai), og at hoftene ikke skytes opp i luften.' }
+          }
+        ]
+      },
+      {
+        id: 'day3',
+        title: 'Økt 3: Underkropp B',
+        subtitle: 'Hypertrofi & Quads',
+        exercises: [
+          {
+            id: 'squat_smith', name: 'Smith Maskin Knebøy', sets: 3, reps: '10-12', restTime: 120, restLabel: '2 min',
+            target: { primary: ['quads', 'glutes'], secondary: ['hamstrings', 'lowerback'] },
+            muscles: 'Fremside lår (Quadriceps), gluteus og adduktorer (innside lår).',
+            why: 'Smith-maskinen tillater en mer oppreist overkropp og dypere knebøy enn frivekter, noe som flytter nesten all belastning direkte over på fremsiden av lårene for maksimal muskelvekst.',
+            position: 'Plasser stangen på øvre del av nakken. Plasser føttene litt lenger frem foran deg enn ved en fri knebøy, føttene i skulderbredde.',
+            execution: { concentric: '1-2 sek: Press gjennom hele foten for å skyve deg opp igjen. Hold spenningen i bena på toppen.', eccentric: '3-4 sek: Sett deg bakover og ned som på en stol, hold brystet høyt. Gå dypest mulig uten at korsryggen runder under deg.' }
+          },
+          {
+            id: 'legpress_low', name: 'Benpress (Lav fotstilling)', sets: 3, reps: '12-15', restTime: 90, restLabel: '90 sek',
+            target: { primary: ['quads'], secondary: [] },
+            muscles: 'Quadriceps (ekstrem stimulering av vastus lateralis - ytre lår).',
+            why: 'Høyere repetisjonsantall bygger opp metabolsk stress (melkesyre), som er en av hoveddriverne for hypertrofi og påfølgende bedring av insulinfølsomhet.',
+            position: 'Lav plassering: Føtter plassert lavt på platen fører til økt knefleksjon og at knærne vandrer lenger frem over tærne. Dette øker vektarmen og river i fremside lår.',
+            execution: { concentric: '1 sek: Skyv jevnt oppover igjen. Jobb i et rytmisk, pumpende tempo uten pauser i toppen.', eccentric: '3 sek: Senk platen kontrollert. Ryggen skal hele tiden være flat mot setet.' }
+          },
+          {
+            id: 'legextension', name: 'Leg Extension', sets: 3, reps: '15', restTime: 60, restLabel: '60 sek',
+            target: { primary: ['quads'], secondary: [] },
+            muscles: 'Rectus femoris (den delen av fremside lår som krysser både kne og hofte).',
+            why: 'Dette er den eneste øvelsen som effektivt kan isolere rectus femoris. Avslutter quads fullstendig etter de tyngre pressøvelsene.',
+            position: 'Sitt godt tilbake i setet. Lene overkroppen svakt bakover for å sette muskelen i en mer strukket posisjon, noe som øker hypertrofipotensialet gjennom strekk-mediert hypertrofi.',
+            execution: { concentric: '1-2 sek: Spark bena oppover til knærne er utstrakt. Klem fremsiden av lårene steinhardt i 1 sekund.', eccentric: '3 sek: Senk vekten langsomt og la muskelen kjempe mot tyngdekraften. Ikke sprett i bunnen.' }
+          },
+          {
+            id: 'glutebridge_smith', name: 'Glute Bridge (Smith)', sets: 3, reps: '12', restTime: 90, restLabel: '90 sek',
+            target: { primary: ['glutes'], secondary: ['hamstrings'] },
+            muscles: 'Gluteus maximus (direkte isolasjon av setet).',
+            why: 'Isolerer setemuskulaturen sterkt uten å belaste ryggraden aksialt (ovenfra og ned), noe som gjør det til en trygg og ekstremt effektiv øvelse for å bygge setet.',
+            position: 'Ligg på ryggen under stangen. Bruk en tykk pad. Plasser stangen over hoftekammen. Føttene i hoftebredde tett opp mot setet. Haken trukket ned mot brystet.',
+            execution: { concentric: '1-2 sek: Skyv hoftene kraftig opp mot taket ved å presse gjennom hælene. Skvis setet maksimalt når kroppen danner en rett linje.', eccentric: '3 sek: Senk hoftene kontrollert tilbake til gulvet uten å miste muskelspenningen.' }
+          },
+          {
+            id: 'calfraise_standing', name: 'Stående Legghev', sets: 3, reps: '15-20', restTime: 60, restLabel: '60 sek',
+            target: { primary: ['calves'], secondary: [] },
+            muscles: 'Gastrocnemius (ytre/øvre leggmuskel).',
+            why: 'Stående legghev med strake ben retter arbeidet spesifikt mot gastrocnemius. Høyt repetisjonsantall bygger utholdenhet og kapillaritet i leggene.',
+            position: 'Bruk en stepkasse i Smith-maskinen. Stangen på nakken. Stå rett opp og ned med tåballene på kanten.',
+            execution: { concentric: '1 sek: Skyv opp på tå i et litt raskere tempo for å skape pump. Klem på toppen.', eccentric: '3 sek: Senk hælene dypest mulig ned mot gulvet for full strekk.' }
+          }
+        ]
+      },
+      {
+        id: 'day4',
+        title: 'Økt 4: Overkropp B',
+        subtitle: 'Ryggtykkelse & Lats-fokus',
+        exercises: [
+          {
+            id: 'row_db_1arm', name: 'En-arms Manualroing', sets: 4, reps: '10 pr. arm', restTime: 90, restLabel: '90 sek',
+            target: { primary: ['lats'], secondary: ['biceps', 'rear_delts', 'lowerback', 'traps'] },
+            muscles: 'Ryggtykkelse: Latissimus dorsi, rhomboideus, og bakre deltoid.',
+            why: 'Manualroing utfyller nedtrekk perfekt ved å fokusere mer på ryggtykkelse og unilateral (ensidig) styrke, noe som korrigerer ubalanser i ryggen.',
+            position: 'Støtt deg med det ene kneet og den ene hånden på en flat benk. Kjernen er stram for å holde ryggen nøytral og parallell med gulvet. Unngå rotasjon i overkroppen.',
+            execution: { concentric: '1-2 sek: Trekk albuen opp og bakover i en bue mot hoften (maksimerer skulderstrebelse), fremfor rett opp mot brystet.', eccentric: '3 sek: Senk manualen langsomt ned og la skulderbladet strekkes helt ut mot gulvet i bunnposisjonen.' }
+          },
+          {
+            id: 'pulldown_narrow', name: 'Nedtrekk (Smalere grep)', sets: 3, reps: '12', restTime: 90, restLabel: '90 sek',
+            target: { primary: ['lats'], secondary: ['biceps', 'forearms'] },
+            muscles: 'Nedre del av latissimus dorsi og biceps.',
+            why: 'Ved å bytte til et smalere grep flyttes belastningen lengre ned på latsene, noe som bidrar til en rygg som ser "lengre" og mer komplett ut.',
+            position: 'Bruk et V-håndtak eller et smalt overhåndsgrep. Sitt godt fastspent. Len overkroppen litt bakover og skyt brystet frem mot taket.',
+            execution: { concentric: '1-2 sek: Trekk håndtaket ned mot midten av brystet, la albuene gli tett inntil kroppen. Klem skulderbladene sammen.', eccentric: '3 sek: Før håndtaket sakte opp igjen. Tillat en intens strekk i ryggmuskulaturen i toppen.' }
+          },
+          {
+            id: 'latraise_db', name: 'Manual Lateral Raises', sets: 3, reps: '15', restTime: 60, restLabel: '60 sek',
+            target: { primary: ['shoulders'], secondary: ['traps'] },
+            muscles: 'Siden av skuldrene (Lateral deltoid).',
+            why: 'Sterke, velutviklede skuldre forsterker "V-taperen" (bredere skuldre = smalere midje-illusjon), som er en viktig estetisk del av oppsettet for kvinner med PCOS.',
+            position: 'Stå oppreist med en manual i hver hånd. Liten knekk i albuene. Armene skal løftes lett foran kroppen (i scapularplanet, ca. 15 grader frem).',
+            execution: { concentric: '1-2 sek: Løft manualene ut til siden til de er i skulderhøyde. Tenk at du "heller vann ut av to kanner" på toppen for å engasjere midtre skulder.', eccentric: '3 sek: Senk vektene svært langsomt ned for å motvirke tyngdekraften maksimalt.' }
+          },
+          {
+            id: 'facepulls_cable', name: 'Face Pulls (Kabel)', sets: 3, reps: '15', restTime: 60, restLabel: '60 sek',
+            target: { primary: ['rear_delts', 'traps'], secondary: ['shoulders'] },
+            muscles: 'Bakre skulder (posterior deltoid), rotator cuff og rhomboideus.',
+            why: 'Dette er den ultimate øvelsen for god kroppsholdning. Den trekker skuldrene tilbake og oppveier for alt arbeidet vi gjør fremover (som benkpress og mye sitting).',
+            position: 'Sett trinsen over hodehøyde med et tau. Stå stødig med lett knebøy og stram kjerne. Grip tauet med håndflatene pekende mot hverandre.',
+            execution: { concentric: '1-2 sek: Trekk tauet direkte mot ansiktet/øynene. Når tauet nærmer seg, dra hendene fra hverandre så overarmene er parallelle med gulvet.', eccentric: '3 sek: Før armene langsomt fremover. Kjenn at musklene bak på skulderen jobber som bremseklosser.' }
+          },
+          {
+            id: 'pulldown_straightarm', name: 'Straight-Arm Pulldown', sets: 3, reps: '12-15', restTime: 60, restLabel: '60 sek',
+            target: { primary: ['lats'], secondary: ['triceps', 'abs'] },
+            muscles: 'Latissimus dorsi (ren isolasjon).',
+            why: 'Isolerer ryggen helt uten at biceps tar over arbeidet. Dette sikrer at latsene tømmes fullstendig for energi på slutten av ryggøkten.',
+            position: 'Stå vendt mot kabelmaskinen med høyt feste (tau eller rett stang). Ta et skritt tilbake, bøy lett i hoftene, hold armene tilnærmet strake.',
+            execution: { concentric: '1-2 sek: Press stangen/tauet ned i en stor bue inntil lårene ved kun å bruke ryggen. Stram latsene kraftig i bunnen.', eccentric: '3-4 sek: Hev armene langsomt opp i buen igjen til du kjenner en intens strekk på ribbekassen under armhulene.' }
+          }
+        ]
+      }
+    ];
+
+    function App() {
+      const [currentView, setCurrentView] = useState('workout');
+      const [activeTab, setActiveTab] = useState('day1');
+      
+      const [workoutPlan, setWorkoutPlan] = useState(() => {
+        const savedPlan = localStorage.getItem('pcosWorkoutPlan_v4');
+        return savedPlan ? JSON.parse(savedPlan) : defaultWorkoutData;
+      });
+
+      const [expandedExc, setExpandedExc] = useState({});
+      
+      const [setLog, setSetLog] = useState(() => {
+        const saved = localStorage.getItem('pcosSetLogs_v4');
+        return saved ? JSON.parse(saved) : {};
+      });
+
+      const [history, setHistory] = useState(() => {
+        const savedHistory = localStorage.getItem('pcosWorkoutHistory_v4');
+        return savedHistory ? JSON.parse(savedHistory) : [];
+      });
+      
+      const [timerActive, setTimerActive] = useState(false);
+      const [timeLeft, setTimeLeft] = useState(0);
+      const [totalTime, setTotalTime] = useState(0);
+      const timerRef = useRef(null);
+
+      const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+      const [newExcData, setNewExcData] = useState({ name: '', sets: 3, reps: '10', restTime: 90 });
+
+      const activeWorkout = workoutPlan.find(w => w.id === activeTab);
+
+      useEffect(() => { localStorage.setItem('pcosSetLogs_v4', JSON.stringify(setLog)); }, [setLog]);
+      useEffect(() => { localStorage.setItem('pcosWorkoutHistory_v4', JSON.stringify(history)); }, [history]);
+      useEffect(() => { localStorage.setItem('pcosWorkoutPlan_v4', JSON.stringify(workoutPlan)); }, [workoutPlan]);
+
+      const handleSetInput = (excId, setIndex, field, value) => {
+        setSetLog(prev => ({
+          ...prev,
+          [`${activeTab}_${excId}_${setIndex}_${field}`]: value
+        }));
+      };
+
+      const toggleSetStatus = (excId, setIndex) => {
+        const key = `${activeTab}_${excId}_${setIndex}_done`;
+        setSetLog(prev => ({ ...prev, [key]: !prev[key] }));
+      };
+
+      const saveWorkoutToHistory = () => {
+        if(window.confirm('Vil du lagre denne økten i historikken og fjerne hakene for en ny uke?')) {
+          const historyExercises = activeWorkout.exercises.map(exc => {
+            const completedSetsInfo = [];
+            for (let s = 0; s < exc.sets; s++) {
+              if (setLog[`${activeTab}_${exc.id}_${s}_done`]) {
+                const kg = setLog[`${activeTab}_${exc.id}_${s}_kg`] || '-';
+                const reps = setLog[`${activeTab}_${exc.id}_${s}_reps`] || '-';
+                completedSetsInfo.push(`${kg}kg x ${reps} reps`);
+              }
+            }
+            return {
+              id: exc.id, name: exc.name, completedSetsInfo, setsCompleted: completedSetsInfo.length, totalSets: exc.sets
+            };
+          });
+
+          const workoutLog = {
+            id: Date.now().toString(),
+            date: new Date().toLocaleDateString('no-NO', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit' }),
+            workoutId: activeTab, workoutTitle: activeWorkout.title, exercises: historyExercises
+          };
+
+          setHistory(prev => [workoutLog, ...prev]);
+
+          const newSetLog = { ...setLog };
+          Object.keys(newSetLog).forEach(key => {
+            if (key.startsWith(activeTab) && key.endsWith('_done')) delete newSetLog[key];
+          });
+          setSetLog(newSetLog);
+          
+          alert('Økten er lagret i historikken din! 🎉');
+        }
+      };
+
+      const handleAddExercise = () => {
+        if (!newExcData.name.trim()) return alert('Vennligst fyll inn navn på øvelsen.');
+        const customExc = {
+          id: `custom_${Date.now()}`, name: newExcData.name, sets: parseInt(newExcData.sets) || 3, reps: newExcData.reps || '10',
+          restTime: parseInt(newExcData.restTime) || 90, restLabel: `${newExcData.restTime} sek`,
+          muscles: 'Egendefinert øvelse', why: 'Lagt til manuelt.', position: '-', execution: { concentric: '-', eccentric: '-' }
+        };
+        const updatedPlan = workoutPlan.map(day => day.id === activeTab ? { ...day, exercises: [...day.exercises, customExc] } : day);
+        setWorkoutPlan(updatedPlan);
+        setIsAddModalOpen(false);
+        setNewExcData({ name: '', sets: 3, reps: '10', restTime: 90 });
+      };
+
+      const handleDeleteExercise = (excId, excName) => {
+        if(window.confirm(`Er du sikker på at du vil fjerne "${excName}" fra programmet?`)) {
+          setWorkoutPlan(workoutPlan.map(day => day.id === activeTab ? { ...day, exercises: day.exercises.filter(e => e.id !== excId) } : day));
+        }
+      };
+
+      const handleResetPlan = () => {
+        if(window.confirm('Gjenopprett standardprogrammet? Alle egendefinerte øvelser vil bli slettet.')) setWorkoutPlan(defaultWorkoutData);
+      };
+
+      const toggleExpand = (exerciseId) => {
+        const key = `${activeTab}_${exerciseId}`;
+        setExpandedExc(prev => ({ ...prev, [key]: !prev[key] }));
+      };
+
+      const startTimer = (seconds) => {
+        clearInterval(timerRef.current);
+        setTimeLeft(seconds); setTotalTime(seconds); setTimerActive(true);
+        timerRef.current = setInterval(() => {
+          setTimeLeft(prev => {
+            if (prev <= 1) { clearInterval(timerRef.current); setTimerActive(false); if (navigator.vibrate) navigator.vibrate([200, 100, 200]); return 0; }
+            return prev - 1;
+          });
+        }, 1000);
+      };
+
+      const stopTimer = () => { clearInterval(timerRef.current); setTimerActive(false); setTimeLeft(0); };
+      const formatTime = (seconds) => `${Math.floor(seconds / 60).toString().padStart(2, '0')}:${(seconds % 60).toString().padStart(2, '0')}`;
+      
+      const calculateProgress = () => {
+        if (!activeWorkout || activeWorkout.exercises.length === 0) return 0;
+        let totalSets = 0, completedSets = 0;
+        activeWorkout.exercises.forEach((exc) => {
+          totalSets += exc.sets;
+          for (let s = 0; s < exc.sets; s++) { if (setLog[`${activeTab}_${exc.id}_${s}_done`]) completedSets++; }
+        });
+        return totalSets === 0 ? 0 : Math.round((completedSets / totalSets) * 100);
+      };
+
+      if (currentView === 'history') {
+        return (
+          <div className="min-h-screen bg-slate-100 pb-24 animate-pop-in">
+            <header className="bg-indigo-600 text-white p-4 shadow-md sticky top-0 z-10 flex items-center justify-between">
+              <h1 className="text-xl font-bold">Historikk</h1>
+              <button onClick={() => setCurrentView('workout')} className="bg-indigo-700 hover:bg-indigo-800 px-4 py-2 rounded-lg text-sm font-medium">Tilbake</button>
+            </header>
+            <main className="max-w-md mx-auto p-4 space-y-4">
+              {history.length === 0 ? (
+                <div className="bg-white p-8 rounded-xl text-center"><p className="text-slate-500 font-medium">Historikken er tom.</p></div>
+              ) : (
+                history.map((log) => (
+                  <div key={log.id} className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div className="bg-slate-800 text-white p-3 flex justify-between items-center">
+                      <div><p className="text-xs text-slate-400">{log.date}</p><h3 className="font-bold text-sm">{log.workoutTitle}</h3></div>
+                    </div>
+                    <div className="p-4 space-y-4">
+                      {log.exercises.map((exc, idx) => (
+                        <div key={idx} className="border-b border-slate-100 pb-3 last:border-0 last:pb-0">
+                          <div className="flex justify-between items-end mb-2">
+                            <p className="font-bold text-slate-800 text-sm">{exc.name}</p>
+                            <p className="text-xs text-slate-500 font-medium">{exc.setsCompleted} / {exc.totalSets} sett</p>
+                          </div>
+                          {exc.completedSetsInfo.length > 0 ? (
+                            <div className="flex flex-wrap gap-2">
+                              {exc.completedSetsInfo.map((info, i) => (
+                                <span key={i} className="bg-indigo-50 text-indigo-700 px-2 py-1 rounded text-xs font-semibold border border-indigo-100">
+                                  {info}
+                                </span>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="text-xs text-slate-400 italic">Ingen sett loggført.</p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))
+              )}
+            </main>
+          </div>
+        );
+      }
+
+      return (
+        <div className="min-h-screen relative">
+          <header className="bg-indigo-600 text-white p-4 shadow-md sticky top-0 z-10 pt-safe">
+            <div className="max-w-md mx-auto flex justify-between items-start">
+              <div><h1 className="text-2xl font-bold">PCOS Plan</h1><p className="text-indigo-200 text-sm mt-1">Styrke & Hypertrofi</p></div>
+              <button onClick={() => setCurrentView('history')} className="bg-indigo-700 p-2 px-3 rounded-lg text-sm flex items-center gap-2 border border-indigo-500 shadow-sm active:scale-95 transition-all">
+                <i className="fa-solid fa-clock-rotate-left"></i><span className="font-medium">Historikk</span>
+              </button>
+            </div>
+            <div className="flex overflow-x-auto mt-4 gap-2 pb-1 scrollbar-hide max-w-md mx-auto">
+              {workoutPlan.map((day) => (
+                <button key={day.id} onClick={() => setActiveTab(day.id)} className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${activeTab === day.id ? 'bg-white text-indigo-700 shadow-md scale-105' : 'bg-indigo-500/50 text-indigo-100 hover:bg-indigo-400/50'}`}>
+                  {day.title.split(':')[0]}
+                </button>
+              ))}
+            </div>
+          </header>
+
+          <main key={activeTab} className="max-w-md mx-auto p-4 space-y-4 animate-slide-up-fade">
+            <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-100">
+              <h2 className="text-xl font-bold text-slate-800">{activeWorkout.title}</h2>
+              <div className="flex items-center justify-between mt-3">
+                <div className="flex items-center space-x-2 text-slate-500 text-sm"><i className="fa-solid fa-chart-line"></i><span>{calculateProgress()}% utført</span></div>
+                <div className="w-1/2 bg-slate-200 rounded-full h-2"><div className="bg-indigo-600 h-2 rounded-full transition-all" style={{ width: `${calculateProgress()}%` }}></div></div>
+              </div>
+            </div>
+
+            {activeWorkout.exercises.length === 0 && <div className="text-center p-6 text-slate-400 bg-white rounded-xl border border-slate-200">Ingen øvelser lagt til.</div>}
+
+            {activeWorkout.exercises.map((exc) => {
+              const isExpanded = expandedExc[`${activeTab}_${exc.id}`];
+
+              return (
+                <div key={exc.id} className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden relative">
+                  <button onClick={() => handleDeleteExercise(exc.id, exc.name)} className="absolute top-3 right-12 p-2 text-slate-300 hover:text-red-500 z-0 transition-colors">
+                    <i className="fa-solid fa-trash-can text-sm"></i>
+                  </button>
+
+                  <div className="p-4 flex items-center justify-between cursor-pointer hover:bg-slate-50 relative z-10 transition-colors duration-200" onClick={() => toggleExpand(exc.id)}>
+                    <div className="flex-1 pr-8">
+                      <h3 className="font-bold text-lg text-slate-800">{exc.name}</h3>
+                      <p className="text-sm text-slate-500 font-medium">{exc.sets} sett × {exc.reps} reps • Hvile: {exc.restLabel}</p>
+                    </div>
+                    <div className={`transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}>
+                      <i className="fa-solid fa-chevron-down text-slate-400"></i>
+                    </div>
+                  </div>
+
+                  {isExpanded && (
+                    <div className="bg-slate-50/80 border-t border-slate-100 animate-slide-down">
+                      {exc.target && (
+                        <div className="pt-4 px-4 border-b border-slate-100 pb-2">
+                          <div className="flex justify-center gap-4 text-xs font-semibold text-slate-600 mb-2">
+                            <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-indigo-600"></span> Hovedmuskel</span>
+                            <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-sky-400"></span> Støttemuskel</span>
+                          </div>
+                          <AnatomyMap primary={exc.target.primary} secondary={exc.target.secondary} />
+                        </div>
+                      )}
+                      <div className="p-4 text-sm text-slate-700 space-y-4 border-b border-slate-100">
+                        <div className="bg-indigo-50 border border-indigo-100 p-3 rounded-lg">
+                          <span className="font-semibold text-indigo-800 flex items-center gap-2 mb-1"><i className="fa-solid fa-dna"></i> Hvorfor vi trener den:</span>
+                          <p className="text-indigo-900 leading-relaxed">{exc.why}</p>
+                        </div>
+                        <div><span className="font-semibold text-slate-800 block mb-1">🎯 Målmuskulatur:</span>{exc.muscles}</div>
+                        <div><span className="font-semibold text-slate-800 block mb-1">📍 Posisjon & Teknikk:</span>{exc.position}</div>
+                        <div className="bg-white p-3 rounded-lg border border-slate-200 space-y-2">
+                          <span className="font-semibold text-slate-800 flex items-center gap-1"><i className="fa-solid fa-dumbbell text-slate-500"></i> Utførelse:</span>
+                          <p><strong className="text-slate-900">Konsentrisk (Løft):</strong> {exc.execution.concentric}</p>
+                          <p><strong className="text-slate-900">Eksentrisk (Senk):</strong> {exc.execution.eccentric}</p>
+                        </div>
+                        
+                        {/* YouTube Video Knapp */}
+                        <a 
+                          href={`https://www.youtube.com/results?search_query=${encodeURIComponent(exc.name + ' teknikk trening')}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-4 w-full flex items-center justify-center gap-2 bg-red-50 text-red-600 py-3 rounded-lg font-bold border border-red-100 hover:bg-red-100 transition-all active:scale-95"
+                        >
+                          <i className="fa-brands fa-youtube text-xl"></i> Se teknikk-video
+                        </a>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="bg-white p-4">
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Registrer Vekter</p>
+                    <div className="space-y-2">
+                      {[...Array(exc.sets)].map((_, sIdx) => {
+                        const isDone = setLog[`${activeTab}_${exc.id}_${sIdx}_done`];
+                        const kgValue = setLog[`${activeTab}_${exc.id}_${sIdx}_kg`] || '';
+                        const repsValue = setLog[`${activeTab}_${exc.id}_${sIdx}_reps`] || '';
+
+                        return (
+                          <div key={sIdx} className={`flex items-center gap-2 p-2 rounded-lg border transition-all ${isDone ? 'bg-emerald-50/50 border-emerald-200' : 'bg-slate-50 border-slate-200'}`}>
+                            <span className="text-sm font-bold w-12 text-slate-500 text-center">S {sIdx + 1}</span>
+                            
+                            <div className="flex-1 relative">
+                              <input 
+                                type="number" placeholder="kg" 
+                                value={kgValue} onChange={(e) => handleSetInput(exc.id, sIdx, 'kg', e.target.value)}
+                                className="w-full bg-white border border-slate-300 text-slate-800 text-sm rounded-md focus:ring-indigo-500 focus:border-indigo-500 p-2.5 font-bold text-center" 
+                              />
+                            </div>
+                            
+                            <span className="text-slate-300 font-bold text-sm">x</span>
+                            
+                            <div className="flex-1 relative">
+                              <input 
+                                type="number" placeholder={exc.reps} 
+                                value={repsValue} onChange={(e) => handleSetInput(exc.id, sIdx, 'reps', e.target.value)}
+                                className="w-full bg-white border border-slate-300 text-slate-800 text-sm rounded-md focus:ring-indigo-500 focus:border-indigo-500 p-2.5 font-bold text-center transition-colors" 
+                              />
+                            </div>
+                            
+                            <button 
+                              onClick={() => toggleSetStatus(exc.id, sIdx)} 
+                              className={`w-12 h-11 flex items-center justify-center rounded-md font-bold text-lg transition-all duration-300 active:scale-90 border ${isDone ? 'bg-emerald-500 border-emerald-600 text-white animate-check-pop' : 'bg-slate-200 border-slate-300 text-slate-400 hover:bg-slate-300'}`}
+                            >
+                              {isDone ? <i className="fa-solid fa-check animate-pop-in"></i> : null}
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    
+                    <button onClick={() => startTimer(exc.restTime)} className="mt-4 w-full flex items-center justify-center gap-2 bg-indigo-50 text-indigo-700 py-3 rounded-lg font-bold border border-indigo-100 hover:bg-indigo-100 active:scale-95 transition-all">
+                      <i className="fa-regular fa-clock"></i> Start hvile ({exc.restLabel})
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+
+            <button onClick={() => setIsAddModalOpen(true)} className="w-full mt-2 bg-slate-200 text-slate-700 border-2 border-dashed border-slate-300 p-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 hover:bg-slate-300 hover:border-slate-400 transition-all">
+              <i className="fa-solid fa-plus"></i> Legg til øvelse
+            </button>
+            <button onClick={saveWorkoutToHistory} className="w-full mt-6 bg-slate-800 text-white p-4 rounded-xl font-bold text-lg shadow-lg flex items-center justify-center gap-3 hover:bg-slate-900 active:scale-[0.98] transition-all">
+              <i className="fa-solid fa-floppy-disk"></i> Lagre økt i historikk
+            </button>
+            <div className="pt-8 text-center"><button onClick={handleResetPlan} className="text-slate-400 text-xs underline">Gjenopprett originalt PCOS-program</button></div>
+          </main>
+
+          {isAddModalOpen && (
+            <div className="fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm transition-opacity duration-300">
+              <div className="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl animate-pop-in">
+                <h3 className="font-bold text-xl mb-4">Legg til øvelse</h3>
+                <div className="space-y-4">
+                  <div><label className="block text-sm font-semibold mb-1">Navn</label><input type="text" value={newExcData.name} onChange={(e) => setNewExcData({...newExcData, name: e.target.value})} className="w-full border p-2.5 rounded-lg bg-slate-50" /></div>
+                  <div className="flex gap-4">
+                    <div className="flex-1"><label className="block text-sm font-semibold mb-1">Sett</label><input type="number" value={newExcData.sets} onChange={(e) => setNewExcData({...newExcData, sets: e.target.value})} className="w-full border p-2.5 rounded-lg bg-slate-50" /></div>
+                    <div className="flex-1"><label className="block text-sm font-semibold mb-1">Reps</label><input type="text" value={newExcData.reps} onChange={(e) => setNewExcData({...newExcData, reps: e.target.value})} className="w-full border p-2.5 rounded-lg bg-slate-50" /></div>
+                  </div>
+                  <div><label className="block text-sm font-semibold mb-1">Hviletid (sek)</label><input type="number" step="10" value={newExcData.restTime} onChange={(e) => setNewExcData({...newExcData, restTime: e.target.value})} className="w-full border p-2.5 rounded-lg bg-slate-50" /></div>
+                </div>
+                <div className="flex gap-3 mt-8">
+                  <button onClick={() => setIsAddModalOpen(false)} className="flex-1 bg-slate-200 font-bold py-3 rounded-xl">Avbryt</button>
+                  <button onClick={handleAddExercise} className="flex-1 bg-indigo-600 text-white font-bold py-3 rounded-xl">Lagre</button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {timerActive && (
+            <div className="fixed bottom-4 left-4 right-4 max-w-md mx-auto bg-slate-900 text-white rounded-2xl p-4 flex items-center justify-between z-50 shadow-2xl animate-slide-up-fade">
+              <div className="flex items-center gap-3">
+                <div className="bg-indigo-600 p-2.5 rounded-full animate-pulse"><i className="fa-regular fa-clock text-xl"></i></div>
+                <div><p className="text-xs text-slate-400 font-medium">Hviletid gjenstår</p><div className="text-3xl font-mono font-bold tracking-wider">{formatTime(timeLeft)}</div></div>
+              </div>
+              <div className="flex items-center gap-2">
+                <button onClick={() => startTimer(totalTime)} className="w-10 h-10 flex items-center justify-center bg-slate-800 rounded-full text-slate-300 transition-transform active:scale-90"><i className="fa-solid fa-play ml-0.5"></i></button>
+                <button onClick={stopTimer} className="w-10 h-10 flex items-center justify-center bg-red-500/20 text-red-400 rounded-full transition-transform active:scale-90"><i className="fa-solid fa-xmark text-xl"></i></button>
+              </div>
+            </div>
+          )}
+
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
+
+
 
